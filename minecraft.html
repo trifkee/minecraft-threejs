@@ -39,6 +39,13 @@
       const camera = new THREE.PerspectiveCamera(30, apsect);
       camera.position.set(0, 10, 0);
 
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.1;
+      controls.maxPolarAngle = Math.PI / 2;
+      controls.rotateSpeed = 0.5;
+
       const stats = new Stats();
       stats.showPanel(0);
       document.body.appendChild(stats.dom);
@@ -79,7 +86,88 @@
       light.position.set(2, 50, 3);
       scene.add(light);
 
+      const cameraSpeed = 0.1;
+
+      let moveForward = false,
+        moveBackward = false,
+        moveLeft = false,
+        moveRight = false,
+        moveUp = false,
+        moveDown = false;
+
+      document.addEventListener("keydown", (e) => {
+        console.log("keydown", e.key);
+
+        switch (e.key) {
+          case "w":
+            moveForward = true;
+            break;
+
+          case "s":
+            moveBackward = true;
+            break;
+
+          case "a":
+            moveLeft = true;
+            break;
+
+          case "d":
+            moveRight = true;
+            break;
+
+          case "e":
+            moveUp = true;
+            break;
+
+          case "q":
+            moveDown = true;
+            break;
+        }
+      });
+
+      document.addEventListener("keyup", (e) => {
+        console.log("Key up", e.key);
+        switch (e.key) {
+          case "w":
+            moveForward = false;
+            break;
+
+          case "s":
+            moveBackward = false;
+            break;
+
+          case "a":
+            moveLeft = false;
+            break;
+
+          case "d":
+            moveRight = false;
+            break;
+
+          case "e":
+            moveUp = false;
+            break;
+
+          case "q":
+            moveDown = false;
+            break;
+        }
+      });
+
       function drawFrame() {
+        controls.update();
+
+        const direction = new THREE.Vector3();
+
+        if (moveForward) direction.z -= cameraSpeed;
+        if (moveBackward) direction.z += cameraSpeed;
+        if (moveLeft) direction.x -= cameraSpeed;
+        if (moveRight) direction.x += cameraSpeed;
+        if (moveUp) direction.y -= cameraSpeed;
+        if (moveDown) direction.y += cameraSpeed;
+
+        camera.position.add(direction);
+
         stats.begin();
         renderer.render(scene, camera);
         stats.end();
