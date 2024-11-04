@@ -58,13 +58,28 @@
         map: sandTexture,
       });
 
+      // GRASS MATERIAL
+      const grassSideTexture = loader.load("./assets/grass_side.png");
+      const grassTopTexture = loader.load("./assets/grass_top.png");
+      const dirtTexture = loader.load("./assets/dirt.png");
+      const grassMaterial = [
+        new THREE.MeshBasicMaterial({ map: grassSideTexture }),
+        new THREE.MeshBasicMaterial({ map: grassSideTexture }),
+        new THREE.MeshBasicMaterial({ map: grassTopTexture }),
+        new THREE.MeshBasicMaterial({ map: dirtTexture }),
+        new THREE.MeshBasicMaterial({ map: grassSideTexture }),
+        new THREE.MeshBasicMaterial({ map: grassSideTexture }),
+      ];
+
+      const grassBlock = new THREE.Mesh(blockGeometry, grassMaterial);
+
       const sandBlock = new THREE.Mesh(blockGeometry, sandMaterial);
 
       scene.add(sandBlock);
 
       const instancedMesh = new THREE.InstancedMesh(
         blockGeometry,
-        sandMaterial,
+        grassMaterial,
         40000
       );
       let i = 0;
