@@ -39,8 +39,50 @@
       const camera = new THREE.PerspectiveCamera(30, apsect);
       camera.position.set(0, 10, 0);
 
+      const stats = new Stats();
+      stats.showPanel(0);
+      document.body.appendChild(stats.dom);
+
+      const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
+      const loader = new THREE.TextureLoader();
+      const sandTexture = loader.load("./assets/sand.png");
+
+      const sandMaterial = new THREE.MeshBasicMaterial({
+        map: sandTexture,
+      });
+
+      const sandBlock = new THREE.Mesh(blockGeometry, sandMaterial);
+
+      scene.add(sandBlock);
+
+      const instancedMesh = new THREE.InstancedMesh(
+        blockGeometry,
+        sandMaterial,
+        40000
+      );
+      let i = 0;
+
+      for (let x = -100; x < 100; x++) {
+        for (let z = -100; z < 100; z++) {
+          const matrix = new THREE.Matrix4();
+          matrix.setPosition(x, 0, z);
+
+          instancedMesh.setMatrixAt(i, matrix);
+
+          i++;
+        }
+      }
+
+      scene.add(instancedMesh);
+
+      const light = new THREE.PointLight();
+      light.position.set(2, 50, 3);
+      scene.add(light);
+
       function drawFrame() {
+        stats.begin();
         renderer.render(scene, camera);
+        stats.end();
       }
     </script>
   </body>
