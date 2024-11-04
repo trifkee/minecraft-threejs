@@ -75,6 +75,29 @@
 
       const sandBlock = new THREE.Mesh(blockGeometry, sandMaterial);
 
+      const flowerGeometry = new THREE.PlaneGeometry(0.5, 0.5);
+      const flowerTexture = loader.load("./assets/flower.png");
+
+      const flowerMaterial = new THREE.MeshBasicMaterial({
+        map: flowerTexture,
+        transparent: true,
+        side: THREE.DoubleSide,
+      });
+
+      const flowers = [];
+      const flower = new THREE.Mesh(flowerGeometry, flowerMaterial);
+
+      for (let i = 0; i < 1000; i++) {
+        const flowerClone = flower.clone();
+        flowerClone.position.set(
+          Math.random() * 200 - 100,
+          0.7,
+          Math.random() * 200 - 100
+        );
+        flowers.push(flowerClone);
+        scene.add(flowerClone);
+      }
+
       scene.add(sandBlock);
 
       const instancedMesh = new THREE.InstancedMesh(
@@ -182,6 +205,10 @@
         if (moveDown) direction.y += cameraSpeed;
 
         camera.position.add(direction);
+
+        flowers.forEach((flower) =>
+          flower.lookAt(camera.position.x, flower.position.y, camera.position.z)
+        );
 
         stats.begin();
         renderer.render(scene, camera);
