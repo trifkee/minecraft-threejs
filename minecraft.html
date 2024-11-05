@@ -33,6 +33,7 @@
 
       const scene = new THREE.Scene();
       scene.background = new THREE.Color("skyblue");
+      scene.fog = new THREE.FogExp2("skyblue", 0.01);
 
       const apsect = window.innerWidth / window.innerHeight;
 
@@ -42,7 +43,7 @@
       const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
       controls.enableDamping = true;
-      controls.dampingFactor = 0.1;
+      controls.dampingFactor = 0.08;
       controls.maxPolarAngle = Math.PI / 2;
       controls.rotateSpeed = 0.5;
 
@@ -201,6 +202,82 @@
         }
       }
 
+      // BEES
+      const bee = new THREE.Group();
+      const beeBodyGeometry = new THREE.BoxGeometry(0.4, 0.4, 0.5);
+      // Texture
+      const beeFrontTexture = loader.load("./assets/bee_front.png");
+      const beeSide1Texture = loader.load("./assets/bee_side_1.png");
+      const beeSide2Texture = loader.load("./assets/bee_side_2.png");
+      const beeBottomTexture = loader.load("./assets/bee_bottom.png");
+      const beeBackTexture = loader.load("./assets/bee_back.png");
+      const beeTopTexture = loader.load("./assets/bee_top.png");
+
+      const beeMaterials = [
+        new THREE.MeshBasicMaterial({
+          map: beeSide1Texture,
+        }),
+        new THREE.MeshBasicMaterial({
+          map: beeSide2Texture,
+        }),
+        new THREE.MeshBasicMaterial({
+          map: beeTopTexture,
+        }),
+        new THREE.MeshBasicMaterial({
+          map: beeBottomTexture,
+        }),
+        new THREE.MeshBasicMaterial({
+          map: beeFrontTexture,
+        }),
+        new THREE.MeshBasicMaterial({
+          map: beeBackTexture,
+        }),
+      ];
+
+      const beeBody = new THREE.Mesh(beeBodyGeometry, beeMaterials);
+
+      // Wings...
+      const beeWingGeometry = new THREE.BoxGeometry(0.2, 0.05, 0.3);
+      const beeWingMaterial = new THREE.MeshBasicMaterial({
+        color: "white",
+      });
+
+      const beeWing1 = new THREE.Mesh(beeWingGeometry, beeWingMaterial);
+      beeWing1.position.set(-0.2, 0.2, 0);
+
+      bee.add(beeWing1);
+
+      bee.position.set(1, 1, 1);
+
+      const beeWing2 = beeWing1.clone();
+      beeWing2.position.set(0.2, 0.2, 0);
+      bee.add(beeWing2);
+
+      bee.add(beeBody);
+
+      const beesArr = [];
+      const beeDirArr = [];
+
+      for (let i = 0; i < 20; i++) {
+        const beeClone = bee.clone();
+        beeClone.position.set(
+          Math.random() * 50 - 20,
+          Math.random() * 2 + 0.08,
+          Math.random() * 50 - 20
+        );
+
+        beesArr.push(beeClone);
+        scene.add(beeClone);
+
+        let beeDir = new THREE.Vector3(
+          Math.random() * 2 - 1,
+          0,
+          Math.random() * 2 - 1
+        ).normalize();
+
+        beeDirArr.push(beeDir);
+      }
+
       scene.add(sandBlock);
 
       const instancedMesh = new THREE.InstancedMesh(
@@ -295,7 +372,12 @@
         }
       });
 
+      let t = 0;
+      let dirChangeFreq = 10;
+
       function drawFrame() {
+        t++;
+
         controls.update();
 
         const direction = new THREE.Vector3();
@@ -312,6 +394,29 @@
         flowers.forEach((flower) =>
           flower.lookAt(camera.position.x, flower.position.y, camera.position.z)
         );
+
+        for (let i = 0; i < beesArr.length; i++) {
+          const wingFlapSpeed = 0.2;
+          const wingFlapAngle = (Math.sin(t * wingFlapSpeed) * Math.PI) / 4;
+
+          const bee = beesArr[i];
+          const beeDirection = beeDirArr[i];
+
+          bee.children[0].rotation.z = wingFlapAngle;
+          bee.children[1].rotation.z = -wingFlapAngle;
+
+          const beeSpeed = 0.005;
+          const beeAngle = Math.sin(t * beeSpeed) * (Math.PI / 8);
+
+          bee.position.add(beeDirection.clone().multiplyScalar(beeSpeed));
+
+          if (Math.random() < 1 / dirChangeFreq) {
+            beeDirection.x += (Math.random() * 1 - 0.5) * 0.1;
+            beeDirection.z += (Math.random() * 1 - 0.5) * 0.1;
+          }
+
+          bee.lookAt(bee.position.clone().add(beeDirection));
+        }
 
         stats.begin();
         renderer.render(scene, camera);
